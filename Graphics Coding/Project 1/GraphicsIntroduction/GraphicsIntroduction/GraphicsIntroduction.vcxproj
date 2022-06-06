@@ -80,11 +80,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\School Files\source\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\School Files\source\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\School\Jaar2\GraphicalProgramming\graphics\source\include;D:\School Files\source\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\School\Jaar2\GraphicalProgramming\graphics\source\lib;D:\School Files\source\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>D:\School\Jaar2\GraphicalProgramming\graphics\source\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\School\Jaar2\GraphicalProgramming\graphics\source\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -142,6 +144,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -151,10 +154,14 @@
   <ItemGroup>
     <None Include="fragmentShader.shader" />
     <None Include="fragmentShaderSky.shader" />
+    <None Include="fragModel.shader" />
     <None Include="vertexShader.shader" />
     <None Include="vertexShaderSky.shader" />
+    <None Include="vertModel.shader" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="mesh.h" />
+    <ClInclude Include="model.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>

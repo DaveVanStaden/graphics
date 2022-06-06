@@ -10,6 +10,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
+
+#include "model.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -20,16 +23,20 @@
 void renderTerrain(glm::mat4 view, glm::mat4 projection);
 void renderSkybox(glm::mat4 view, glm::mat4 projection);
 void setupResources();
+void renderModel(Model* model, unsigned int shader, glm::vec3 position, glm::vec3 rotation,
+    float scale, glm::mat4 view, glm::mat4 projection);
 
 glm::vec3 cameraPosition(300, 200, 400), cameraForward(0, 0, 1), cameraUp(0, 1, 0);
 
-unsigned int plane, size, VAO, cubeSize;
-unsigned int myProgram, skyProgram;
+unsigned int plane, planeSize, VAO, cubeSize;
+unsigned int myProgram, skyProgram, modelProgram;
 
 //textures
 unsigned int heightmapID;
 unsigned int HeightNormalID;
 unsigned int dirtID, sandID, grassID;
+
+Model* backpack;
 
 
 void handleInput(GLFWwindow* window, float deltaTime) {
@@ -80,6 +87,8 @@ void handleInput(GLFWwindow* window, float deltaTime) {
 
     // update camera position / forward & up
     glm::vec3 translation(0, 0, 0);
+    if (a) translation.z += speed * deltaTime;
+
     cameraPosition += q * translation;
 
     cameraUp = q * glm::vec3(0, 1, 0);
@@ -97,8 +106,8 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    int width = 1200;
-    int height = 800;
+    int width = 800;
+    int height = 600;
     GLFWwindow* window = glfwCreateWindow(width, height, "Hello OpenGL!", nullptr, nullptr);
     glfwMakeContextCurrent(window);
 
@@ -144,6 +153,11 @@ int main()
         renderSkybox(view, projection);
         renderTerrain(view, projection);
 
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ONE);
+
+        renderModel(backpack, modelProgram, glm::vec3(200, -20, 200), glm::vec3(0), 1, view, projection);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -183,7 +197,7 @@ void renderTerrain(glm::mat4 view, glm::mat4 projection) {
     glBindTexture(GL_TEXTURE_2D, grassID);
 
     glBindVertexArray(plane);
-    glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, planeSize, GL_UNSIGNED_INT, 0);
 }
 void renderSkybox(glm::mat4 view, glm::mat4 projection) {
     glUseProgram(skyProgram);
@@ -211,6 +225,9 @@ void renderSkybox(glm::mat4 view, glm::mat4 projection) {
 }
 
 void setupResources() {
+    stbi_set_flip_vertically_on_load(true);
+    backpack = new Model("backpack/backpack.obj");
+
     float vertices[] = {
         // positions            //colors            // tex coords   // normals
         0.5f, -0.5f, -0.5f,     1.0f, 0.0f, 1.0f,   1.f, 0.f,       0.f, -1.f, 0.f,
@@ -304,7 +321,7 @@ void setupResources() {
     glBindVertexArray(0);
     ///END SETUP OBJECT///
 
-    plane = GeneratePlane("Heightmap.png", GL_RGBA, 4, 1.0f, 1.0f, size, heightmapID);
+    plane = GeneratePlane("Heightmap.png", GL_RGBA, 4, 1.0f, 1.0f, planeSize, heightmapID);
 
     //Terrain Textures
     HeightNormalID = loadTexture("HeightNormalMap.png", GL_RGBA,4);
@@ -320,9 +337,11 @@ void setupResources() {
     char* fragmentSource;
     loadFromFile("fragmentShader.shader", &fragmentSource);
 
-    unsigned int vertSky, fragSky;
+    unsigned int vertSky, fragSky, vertModel, fragModel;
     CreateShader("vertexShaderSky.shader", GL_VERTEX_SHADER, vertSky);
     CreateShader("fragmentShaderSky.shader", GL_FRAGMENT_SHADER, fragSky);
+    CreateShader("vertModel.shader", GL_VERTEX_SHADER, vertModel);
+    CreateShader("fragModel.shader", GL_FRAGMENT_SHADER, fragModel);
 
     // LOAD & CREATE TEXTURES
 
@@ -367,6 +386,11 @@ void setupResources() {
     glAttachShader(skyProgram, fragSky);
     glLinkProgram(skyProgram);
 
+    modelProgram = glCreateProgram();
+    glAttachShader(modelProgram, vertModel);
+    glAttachShader(modelProgram, fragModel);
+    glLinkProgram(modelProgram);
+
     glDeleteShader(vertID);
     glDeleteShader(fragID);
     glDeleteShader(vertSky);
@@ -379,4 +403,27 @@ void setupResources() {
     glUniform1i(glGetUniformLocation(myProgram, "dirt"), 2);
     glUniform1i(glGetUniformLocation(myProgram, "sand"), 3);
     glUniform1i(glGetUniformLocation(myProgram, "grass"), 4);
+}
+
+void renderModel(Model * model, unsigned int shader, glm::vec3 position, glm::vec3 rotation, float scale, glm::mat4 view, glm::mat4 projection) {
+    //shader gebruiken
+    glUseProgram(shader);
+    glEnable(GL_DEPTH);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
+    //world matrix bouwen
+    glm::mat4 world = glm::mat4(1);
+    world = glm::translate(world, position);
+    world = glm::scale(world, glm::vec3(scale));
+    glm::quat q(rotation);
+    world = world * glm::toMat4(q);
+
+    //shader instellen
+    glUniformMatrix4fv(glGetUniformLocation(shader, "world"), 1, GL_FALSE, glm::value_ptr(world));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    glUniform3fv(glGetUniformLocation(shader, "cameraPosition"), 1, glm::value_ptr(cameraPosition));
+
+    model->Draw(shader);
 }
