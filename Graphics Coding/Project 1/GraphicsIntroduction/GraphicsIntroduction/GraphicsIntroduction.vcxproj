@@ -80,8 +80,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\School\Jaar2\GraphicalProgramming\graphics\source\include;D:\School Files\source\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\School\Jaar2\GraphicalProgramming\graphics\source\lib;D:\School Files\source\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\SchoolFiles\source\include\vcpkgFolder\vcpkg;D:\SchoolFiles\source\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\SchoolFiles\Jaar2\GraphicalProgramming\graphics\source\lib;D:\SchoolFiles\source\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>

@@ -37,6 +37,8 @@ unsigned int HeightNormalID;
 unsigned int dirtID, sandID, grassID;
 
 Model* backpack;
+Model* girl;
+Model* cat;
 
 
 void handleInput(GLFWwindow* window, float deltaTime) {
@@ -153,11 +155,13 @@ int main()
         renderSkybox(view, projection);
         renderTerrain(view, projection);
 
-        glEnable(GL_BLEND);
+        //glEnable(GL_BLEND);
         glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ONE);
 
-        renderModel(backpack, modelProgram, glm::vec3(200, -20, 200), glm::vec3(0), 1, view, projection);
-
+        renderModel(backpack, modelProgram, cameraPosition + glm::vec3(0, 0, 10) , glm::vec3(0), 1, view, projection);
+        renderModel(girl, modelProgram, cameraPosition + glm::vec3(0, -2, -2), glm::vec3(0), 1, view, projection);
+        renderModel(cat, modelProgram, cameraPosition + glm::vec3(4, -2, -3), glm::vec3(0), 0.1, view, projection);
+        //glDisable(GL_BLEND);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -198,6 +202,7 @@ void renderTerrain(glm::mat4 view, glm::mat4 projection) {
 
     glBindVertexArray(plane);
     glDrawElements(GL_TRIANGLES, planeSize, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 }
 void renderSkybox(glm::mat4 view, glm::mat4 projection) {
     glUseProgram(skyProgram);
@@ -222,11 +227,14 @@ void renderSkybox(glm::mat4 view, glm::mat4 projection) {
     glBindVertexArray(VAO);
     //glDrawArrays(GL_TRIANGLES, 0, 6);
     glDrawElements(GL_TRIANGLES, cubeSize, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 }
 
 void setupResources() {
     stbi_set_flip_vertically_on_load(true);
     backpack = new Model("backpack/backpack.obj");
+    girl = new Model("Girl/Girl OBJ.obj");
+    cat = new Model("Cat/12221_Cat_v1_l3.obj");
 
     float vertices[] = {
         // positions            //colors            // tex coords   // normals
@@ -408,7 +416,7 @@ void setupResources() {
 void renderModel(Model * model, unsigned int shader, glm::vec3 position, glm::vec3 rotation, float scale, glm::mat4 view, glm::mat4 projection) {
     //shader gebruiken
     glUseProgram(shader);
-    glEnable(GL_DEPTH);
+    glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
